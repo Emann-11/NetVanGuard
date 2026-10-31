@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <cstdint>
+#include "../stats/TopTalkerHeap.h"
 
-// Windows aur Linux dono ke liye compatible network headers
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -54,7 +54,7 @@ private:
 public:
     explicit PcapReader(const std::string& path) : filePath(path) {}
     
-    bool readPackets() {
+    bool readPackets(TopTalkerHeap& tracker) {
         std::ifstream file(filePath, std::ios::binary);
         if (!file.is_open()) {
             std::cout << "[Error] PCAP file open nahi ho saki: " << filePath << std::endl;
@@ -78,15 +78,17 @@ public:
 
             const IPHeader* ip_header = reinterpret_cast<const IPHeader*>(packetData.data() + sizeof(EthernetHeader));
 
-            in_addr src_addr, dest_addr;
+            in_addr src_addr;
             src_addr.s_addr = ip_header->src_ip;
-            dest_addr.s_addr = ip_header->dest_ip;
+            std::string srcIpStr = inet_ntoa(src_addr);
 
-            std::cout << "[Packet #" << ++packetCount << "] Source IP: " << inet_ntoa(src_addr) 
-                      << " | Dest IP: " << inet_ntoa(dest_addr) 
-                      << " | Length: " << p_header.incl_len << " bytes" << std::endl;
+            // Traffic ko TopTalkerHeap mein add karein
+            tracker.addTraffic(srcIpStr, p_header.incl_len);
+
+            packetCount++;
         }
 
+        std::cout << "[Info] Total Processed Packets: " << packetCount << std::endl;
         return true;
     }
 };

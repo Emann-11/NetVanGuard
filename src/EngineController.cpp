@@ -5,10 +5,15 @@
 class EngineController {
 public:
     void runEngine() {
-        std::cout << "[Engine] NetVanguard Packet Extraction Started..." << std::endl;
+        std::cout << "[Engine] NetVanguard Full Pipeline Started..." << std::endl;
         
-        // Read actual packets from sample pcap
         PcapReader reader("../samples/nmap_standard_scan.pcap");
-        reader.readPackets();
+        TopTalkerHeap tracker;
+
+        // Parse packets and feed data into traffic statistics tracker
+        reader.readPackets(tracker);
+
+        // Display final aggregated traffic statistics
+        tracker.displayStats();
     }
 };
