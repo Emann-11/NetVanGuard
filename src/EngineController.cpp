@@ -1,19 +1,20 @@
 #include "parser/PcapReader.h"
 #include "stats/TopTalkerHeap.h"
+#include "detector/AnomalyDetector.h"
 #include <iostream>
 
 class EngineController {
 public:
     void runEngine() {
-        std::cout << "[Engine] NetVanguard Full Pipeline Started..." << std::endl;
+        std::cout << "[Engine] NetVanguard Full Pipeline with IDS Started..." << std::endl;
         
         PcapReader reader("../samples/nmap_standard_scan.pcap");
         TopTalkerHeap tracker;
+        AnomalyDetector detector;
 
-        // Parse packets and feed data into traffic statistics tracker
-        reader.readPackets(tracker);
+        reader.readPackets(tracker, detector);
 
-        // Display final aggregated traffic statistics
+        detector.evaluateTraffic();
         tracker.displayStats();
     }
 };

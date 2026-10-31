@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdint>
 #include "../stats/TopTalkerHeap.h"
+#include "../detector/AnomalyDetector.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -54,7 +55,7 @@ private:
 public:
     explicit PcapReader(const std::string& path) : filePath(path) {}
     
-    bool readPackets(TopTalkerHeap& tracker) {
+    bool readPackets(TopTalkerHeap& tracker, AnomalyDetector& detector) {
         std::ifstream file(filePath, std::ios::binary);
         if (!file.is_open()) {
             std::cout << "[Error] PCAP file open nahi ho saki: " << filePath << std::endl;
@@ -82,8 +83,9 @@ public:
             src_addr.s_addr = ip_header->src_ip;
             std::string srcIpStr = inet_ntoa(src_addr);
 
-            // Traffic ko TopTalkerHeap mein add karein
+            // Traffic ko TopTalkerHeap aur AnomalyDetector mein add karein
             tracker.addTraffic(srcIpStr, p_header.incl_len);
+            detector.analyzePacket(srcIpStr);
 
             packetCount++;
         }
